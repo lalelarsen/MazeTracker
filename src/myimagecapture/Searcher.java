@@ -17,6 +17,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -24,7 +25,17 @@ import javax.swing.JFrame;
  */
 public class Searcher extends Observable {
 
+    SerialTest st = new SerialTest();
+
+    int target1 = 0;
+    int target2 = 0;
+    int curr1 = 0;
+    int curr2 = 0;
+
     public void Track(int seconds) {
+        st.initialize();
+        String str = JOptionPane.showInputDialog("test");
+        st.writeData(str);
         boolean infi = false;
         if (seconds == -1) {
             //use -1 to keep it tracking non stop
@@ -57,23 +68,69 @@ public class Searcher extends Observable {
         jf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         jf.add(f);
         this.addObserver(f);
-        int[] blackDot = findColor(imgg, 10, 10, 10);
+        //int[] blackDot = findColor(imgg, 10, 10, 10);
+        int[] blackDot = {160, 120};
         long start = System.currentTimeMillis();
+        long sendTime = System.currentTimeMillis();
+        int[] lastPos = {0, 0};
+
         while (System.currentTimeMillis() < start + seconds * 1000 || infi) {
             BufferedImage img = webcam.getImage();
             int height = img.getHeight();
             int width = img.getWidth();
             ArrayList<RGB> rgbList = new ArrayList();
-            int[] n = findColor(img, 132, 73, 89);
+            int[] n = findColor(img, 86, 117, 166);
+            int[] speed = {n[0] - lastPos[0], n[1] - lastPos[1]};
+            lastPos = n;
             int[] finalPos = {0, 0};
-            finalPos[0] = n[0] - blackDot[0];
-            finalPos[1] = n[1] - blackDot[1];
+            //finalPos[0] = n[0] - blackDot[0];
+            //finalPos[1] = n[1] - blackDot[1];
+            finalPos[0] = n[0] - blackDot[0] + speed[0];
+            finalPos[1] = n[1] - blackDot[1] + speed[1];
+            System.out.println("////");
+            System.out.println(finalPos[0] + " " + finalPos[1]);
+            System.out.println((finalPos[0] + speed[0]) + " " + (finalPos[1]+ speed[1])); 
+            System.out.println("////");
+            target1 = finalPos[0];
+            target2 = finalPos[1];
             //System.out.println(finalPos[0] + " " + finalPos[1]);
-            System.out.println(n[0] + " " + n[1]);
+            //System.out.println(n[0] + " " + n[1]);
+            if (sendTime + 50 < System.currentTimeMillis()) {
+                //st.writeData(finalPos[0] + " " + finalPos[1]);
+
+                st.writeData(finalPos[0] + "," + finalPos[1] + ",");
+                //System.out.println(finalPos[0] + "," + finalPos[1]);
+//                String mess = SendTurnSignal(curr1, curr2, target1, target2);
+//                System.out.println(mess);
+//                st.writeData(mess);
+                sendTime = System.currentTimeMillis();
+            }
+
             Object[] pack = {img, n};
             setChanged();
             notifyObservers(pack);
         }
+    }
+
+    public String SendTurnSignal(int curr1, int curr2, int target1, int target2) {
+        String end = "";
+        if (curr1 < target1) {
+            this.curr1++;
+            end = end + "1,";
+        } else {
+            this.curr1--;
+            end = end + "0,";
+        }
+
+        if (curr2 < target2) {
+            this.curr2++;
+            end = end + "1,";
+        } else {
+            this.curr2--;
+            end = end + "0,";
+        }
+
+        return end;
     }
 
     public int[][] fintRoute(BufferedImage img) {
@@ -102,7 +159,7 @@ public class Searcher extends Observable {
         int scopeX = 60;
         int scopeY = 60;
         boolean endPoint = false;
-        while(!endPoint) {
+        while (!endPoint) {
             ArrayList<RGB> currArea = new ArrayList();
             for (int y = -scopeY / 2; y < scopeY / 2; y++) {
                 for (int x = -scopeX / 2; x < scopeX / 2; x++) {
@@ -114,15 +171,15 @@ public class Searcher extends Observable {
                     int[] currPixel = {pixelData.x, pixelData.y};
                     boolean used = false;
                     for (int i = 0; i < usedPoints.size(); i++) {
-                        if(currPixel[0] == usedPoints.get(i)[0] && currPixel[1] == usedPoints.get(i)[1]){
+                        if (currPixel[0] == usedPoints.get(i)[0] && currPixel[1] == usedPoints.get(i)[1]) {
                             used = true;
                         }
                     }
-                    
-                    if (pixelData.red < 10 && pixelData.green > 70 && pixelData.blue < 65){
+
+                    if (pixelData.red < 10 && pixelData.green > 70 && pixelData.blue < 65) {
                         endPoint = true;
                     }
-                    
+
                     if (pixelData.red < 70 && pixelData.green < 165 && pixelData.blue > 60 && !used) {
                         currArea.add(pixelData);
                         usedPoints.add(currPixel);
@@ -155,9 +212,9 @@ public class Searcher extends Observable {
             for (int x = 0; x < width; x++) {
                 int[] colors = getPixelData(img, x, y);
                 RGB pixelData = new RGB(colors[0], colors[1], colors[2], x, y);
-                if (pixelData.red > red - 10 && pixelData.red < red + 10
-                        && pixelData.green > green - 10 && pixelData.green < green + 10
-                        && pixelData.blue > blue - 10 && pixelData.blue < blue + 10) {
+                if (pixelData.red > red - 20 && pixelData.red < red + 20
+                        && pixelData.green > green - 20 && pixelData.green < green + 20
+                        && pixelData.blue > blue - 20 && pixelData.blue < blue + 20) {
                     ball.add(pixelData);
                 }
             }
@@ -188,4 +245,5 @@ public class Searcher extends Observable {
 
         return rgb;
     }
+
 }

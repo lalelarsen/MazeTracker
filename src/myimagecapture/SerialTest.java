@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 
 public class SerialTest implements SerialPortEventListener {
 
@@ -22,7 +23,7 @@ public class SerialTest implements SerialPortEventListener {
         "/dev/tty.usbserial-A9007UX1", // Mac OS X
         "/dev/ttyACM0", // Raspberry Pi
         "/dev/ttyUSB0", // Linux
-        "COM5", // Windows
+        "COM6", // Windows
     };
     /**
      * A BufferedReader which will be fed by a InputStreamReader converting the
@@ -99,10 +100,11 @@ public class SerialTest implements SerialPortEventListener {
         }
     }
 
-    public static synchronized void writeData(String data) {
-        System.out.println("Sent: " + data);
+    public synchronized void writeData(String data) {
+        //System.out.println("Sent: " + data);
         try {
             output.write(data.getBytes());
+            output.flush();
         } catch (Exception e) {
             System.out.println("could not write to port");
         }
@@ -145,14 +147,11 @@ public class SerialTest implements SerialPortEventListener {
             }
         };
         t.start();
-//        writeData("hallo Arduino");
-//        writeData("hallo Arduino1");
-//        writeData("hallo Arduino2");
-//        writeData("hallo Arduino3");
-//        writeData("hallo Arduino4");
-//        writeData("hallo Arduino5");
-//        writeData("hallo Arduino6");
-//        writeData("hallo Arduino7");
-        System.out.println("Started");
+
+        String str = JOptionPane.showInputDialog("test");
+        //writeData(str);
+        
+        String strr = JOptionPane.showInputDialog("test");
+        //writeData(strr);
     }
 }

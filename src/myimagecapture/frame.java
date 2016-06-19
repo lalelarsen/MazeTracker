@@ -37,6 +37,7 @@ public class frame extends JPanel implements ActionListener, Observer {
         g.setColor(Color.BLUE);
         g.drawImage(img, 0, 0, width, height, null);
         g.fillOval(x, y, 5, 5);
+        g.fillOval(160,120,5,5);
         tm.start();
     }
 
